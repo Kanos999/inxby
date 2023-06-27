@@ -2,7 +2,7 @@
 
 import styles from './page.module.css'
 
-import { useState } from 'react';
+import { useState, forwardRef } from 'react';
 import Box from '@mui/material/Box';
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
@@ -11,6 +11,17 @@ import Select from '@mui/material/Select';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Autocomplete from '@mui/material/Autocomplete';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
+import Slide from '@mui/material/Slide';
+import MissingPrinterDialog from './missingPrinterDialog.js';
+
+const Transition = forwardRef(function Transition(props, ref) {
+  return <Slide direction="up" ref={ref} {...props} />;
+});
 
 
 export default function Home() {
@@ -19,6 +30,7 @@ export default function Home() {
   const [model, setModel] = useState('');
   const [allInks, setAllInks] = useState({});
   const [ink, setInk] = useState('');
+  const [dialogState, setDialogState] = useState(false);
 
 
   // Load inks and printers of inputted make from public/inks
@@ -42,6 +54,7 @@ export default function Home() {
   }
 
   const findCartridge = (modelName) => {
+    setModel(modelName);
     const compatibleInks = Object.keys(allInks).find(inkNum => allInks[inkNum].includes(modelName));
     setInk(compatibleInks);
   };
@@ -49,6 +62,8 @@ export default function Home() {
 
   const makeSelected = (event) => {
     setMake(event.target.value);
+    setModel('');
+    setInk('');
     loadModels(event.target.value);
   };
 
@@ -74,7 +89,8 @@ export default function Home() {
         </FormControl>
 
         {(make !== "") && <Autocomplete
-          value={model}
+          blurOnSelect
+          value={model == "" ? null : model}
           onChange={(event, modelName) => {
             findCartridge(modelName);
           }}
@@ -82,6 +98,13 @@ export default function Home() {
           options={models}
           sx={{ marginTop: '2rem' }}
           renderInput={(params) => <TextField {...params} label="Model" />}
+          renderOption={(props, option) => {
+            return (
+              <li {...props} key={option}>
+                {option}
+              </li>
+            )
+          }}
         />}
 
         {/* <Button variant="outlined" size="large" fullWidth sx={{marginTop: '1rem'}}>
@@ -94,6 +117,18 @@ export default function Home() {
         </Box>}
 
       </Box>
+
+      <Box 
+        className={styles.missingPrinterButton}
+        onClick={() => { setDialogState(true) }}>
+        Missing printer?
+      </Box>
+
+
+      <MissingPrinterDialog
+        dialogState={dialogState}
+        setDialogState={setDialogState}>
+      </MissingPrinterDialog>
 
 
 
